@@ -108,7 +108,7 @@ export default class Pagination extends PureComponent {
         {({ paginationRowsPerPageOptions, paginationIconLastPage, paginationIconFirstPage, paginationIconNext, paginationIconPrevious }) => (
           <React.Fragment>
             <Span>Rows per page:</Span>
-            <Select onChange={this.handleRowsPerPage(currentPage)} defaultValue={rowsPerPage}>
+            <Select value={rowsPerPage} onChange={this.handleRowsPerPage(currentPage)}>
               {paginationRowsPerPageOptions.map(num => (
                 <option
                   key={num}
