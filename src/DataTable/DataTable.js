@@ -20,7 +20,7 @@ import TableWrapper from './TableWrapper';
 import NoData from './NoData';
 import { propTypes, defaultProps } from './propTypes';
 import { decorateColumns, getSortDirection } from './util';
-import { handleSelectAll, handleRowSelected, handleSort, clearSelected } from './statemgmt';
+import { handleSelectAll, handleRowSelected, handleSort, clearSelected, resetStateToDefaults } from './statemgmt';
 import getDefaultTheme from '../themes/default';
 
 class DataTable extends Component {
@@ -33,6 +33,9 @@ class DataTable extends Component {
     if (props.clearSelectedRows !== state.clearSelectedRows) {
       return clearSelected(props.clearSelectedRows);
     }
+    if (props.forceInit !== state.forceInit) {
+      return resetStateToDefaults(props, state);
+    }
 
     return null;
   }
@@ -41,11 +44,11 @@ class DataTable extends Component {
     super(props);
 
     const sortDirection = getSortDirection(props.defaultSortAsc);
-    this.columns = decorateColumns(props.columns);
     this.sortedRows = memoize((rows, defaultSortField, direction) => orderBy(rows, defaultSortField, direction));
     this.mergeTheme = memoize((theme, customTheme) => merge(theme, customTheme));
     this.PaginationComponent = props.paginationComponent;
     this.state = {
+      columns: decorateColumns(props.columns),
       allSelected: false,
       selectedCount: 0,
       selectedRows: [],
@@ -58,13 +61,14 @@ class DataTable extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { onTableUpdate } = this.props;
-    const { selectedRows, sortDirection, sortColumn } = this.state;
+    const { onTableUpdate, onChangePage, onChangeRowsPerPage, data, paginationTotalRows } = this.props;
+    const { selectedRows, sortDirection, sortColumn, currentPage, rowsPerPage, forceInit } = this.state;
 
     if (onTableUpdate &&
       (prevState.selectedRows !== selectedRows
       || prevState.sortDirection !== sortDirection
-      || prevState.sortColumn !== sortColumn)
+      || prevState.sortColumn !== sortColumn
+      )
     ) {
       const { allSelected, selectedCount, clearSelectedRows } = this.state;
 
@@ -76,6 +80,15 @@ class DataTable extends Component {
         sortDirection,
         clearSelectedRows,
       });
+    }
+    if (prevState.forceInit !== forceInit) {
+      if (prevState.currentPage !== currentPage || prevState.rowsPerPage !== rowsPerPage) {
+        if (prevState.rowsPerPage !== rowsPerPage && onChangeRowsPerPage) {
+          onChangeRowsPerPage(rowsPerPage, currentPage);
+        } else if (onChangePage) {
+          onChangePage(currentPage, paginationTotalRows || data.length);
+        }
+      }
     }
   }
 
@@ -165,8 +178,9 @@ class DataTable extends Component {
   }
 
   renderColumns() {
+    const { columns } = this.state;
     return (
-      this.columns.map(column => (
+      columns.map(column => (
         <TableCol
           key={column.id}
           column={column}
@@ -240,6 +254,7 @@ class DataTable extends Component {
     } = this.props;
 
     const {
+      columns,
       rowsPerPage,
       currentPage,
     } = this.state;
@@ -249,7 +264,7 @@ class DataTable extends Component {
     const init = {
       ...this.props,
       ...this.state,
-      ...{ columns: this.columns },
+      ...{ columns },
       ...{ internalCell: selectableRows || expandableRows },
     };
 

@@ -9,51 +9,12 @@ import DataTable from '../../../src/DataTable/DataTable';
 import './index.css';
 
 class MaterialTable extends PureComponent {
-  state = { selectedRows: [], toggleCleared: false, data: tableDataItems };
-
-  handleChange = state => {
-    // eslint-disable-next-line no-console
-    console.log('state ', state);
-    this.setState({ selectedRows: state.selectedRows });
-  };
-
-  handleRowClicked = row => {
-    // eslint-disable-next-line no-console
-    console.log(`${row.name} was clicked!`);
-  }
-
-  deleteAll = () => {
-    const { selectedRows } = this.state;
-    const rows = selectedRows.map(r => r.name);
-    // eslint-disable-next-line no-alert
-    if (window.confirm(`Are you sure you want to delete:\r ${rows}?`)) {
-      this.setState(state => ({ toggleCleared: !state.toggleCleared, data: differenceBy(state.data, state.selectedRows, 'name') }));
-    }
-  }
-
-  deleteOne = row => {
-    // eslint-disable-next-line no-alert
-    if (window.confirm(`Are you sure you want to delete:\r ${row.name}?`)) {
-      const { data } = this.state;
-      const index = data.findIndex(r => r === row);
-
-      this.setState(state => ({
-        toggleCleared: !state.toggleCleared,
-        data: [...state.data.slice(0, index), ...state.data.slice(index + 1)],
-      }));
-    }
-  }
-
-  render() {
-    const actions = [
-      <Button key="add" flat secondary iconChildren="add">Add</Button>,
-    ];
-
-    const contextActions = [
-      <Button key="delete" onClick={this.deleteAll} style={{ color: 'red' }} icon>delete</Button>,
-    ];
-
-    const columns = [
+  state = {
+    selectedRows: [],
+    toggleCleared: false,
+    data: tableDataItems,
+    forceInit: false,
+    columns: [
       {
         name: 'Name',
         selector: 'name',
@@ -107,9 +68,69 @@ class MaterialTable extends PureComponent {
         sortable: true,
         right: true,
       },
+    ]
+    ,
+  };
+
+  handleChange = state => {
+    // eslint-disable-next-line no-console
+    console.log('state ', state);
+    this.setState({ selectedRows: state.selectedRows });
+  };
+
+  handleRowClicked = row => {
+    // eslint-disable-next-line no-console
+    console.log(`${row.name} was clicked!`);
+  }
+
+  deleteAll = () => {
+    const { selectedRows } = this.state;
+    const rows = selectedRows.map(r => r.name);
+    // eslint-disable-next-line no-alert
+    if (window.confirm(`Are you sure you want to delete:\r ${rows}?`)) {
+      this.setState(state => ({ toggleCleared: !state.toggleCleared, data: differenceBy(state.data, state.selectedRows, 'name') }));
+    }
+  }
+
+  deleteOne = row => {
+    // eslint-disable-next-line no-alert
+    if (window.confirm(`Are you sure you want to delete:\r ${row.name}?`)) {
+      const { data } = this.state;
+      const index = data.findIndex(r => r === row);
+
+      this.setState(state => ({
+        toggleCleared: !state.toggleCleared,
+        data: [...state.data.slice(0, index), ...state.data.slice(index + 1)],
+      }));
+    }
+  }
+
+  render() {
+    const actions = [
+      <Button key="add" flat secondary iconChildren="add">Add row</Button>,
+      <Button
+        key="col-remove"
+        flat
+        secondary
+        iconChildren="delete"
+        onClick={() => {
+          this.setState(state => ({
+            ...state,
+            columns: state.columns.slice(0, state.columns.length - 2),
+            forceInit: !state.forceInit,
+          }));
+        }}
+      >
+        Remove column
+      </Button>,
     ];
 
-    const { data, toggleCleared } = this.state;
+    const contextActions = [
+      <Button key="delete" onClick={this.deleteAll} style={{ color: 'red' }} icon>delete</Button>,
+    ];
+
+
+    const { data, toggleCleared, columns, forceInit } = this.state;
 
     return (
       <Card style={{ height: '100%' }}>
@@ -129,6 +150,7 @@ class MaterialTable extends PureComponent {
           clearSelectedRows={toggleCleared}
           onRowClicked={this.handleRowClicked}
           pagination
+          forceInit={forceInit}
         />
       </Card>
     );

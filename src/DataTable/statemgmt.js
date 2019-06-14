@@ -1,4 +1,4 @@
-import { insertItem, removeItem } from './util';
+import { insertItem, removeItem, decorateColumns } from './util';
 
 export const handleSelectAll = (rows, allChecked) => {
   const allSelected = !allChecked;
@@ -45,4 +45,17 @@ export const clearSelected = clearedRowsFlag => ({
   selectedCount: 0,
   selectedRows: [],
   clearSelectedRows: clearedRowsFlag,
+});
+
+export const resetStateToDefaults = (props, state) => ({
+  columns: decorateColumns(props.columns),
+  allSelected: false,
+  selectedCount: 0,
+  selectedRows: [],
+  sortColumn: props.defaultSortField,
+  sortDirection: props.sortDirection,
+  clearSelectedRows: state.clearSelectedRows,
+  currentPage: props.paginationDefaultPage,
+  rowsPerPage: props.paginationPerPage,
+  forceInit: props.forceInit,
 });
