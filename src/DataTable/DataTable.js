@@ -82,12 +82,10 @@ class DataTable extends Component {
       });
     }
     if (prevState.forceInit !== forceInit) {
-      if (prevState.currentPage !== currentPage || prevState.rowsPerPage !== rowsPerPage) {
-        if (prevState.rowsPerPage !== rowsPerPage && onChangeRowsPerPage) {
-          onChangeRowsPerPage(rowsPerPage, currentPage);
-        } else if (onChangePage) {
-          onChangePage(currentPage, paginationTotalRows || data.length);
-        }
+      if (onChangeRowsPerPage) {
+        onChangeRowsPerPage(rowsPerPage, currentPage);
+      } else if (onChangePage) {
+        onChangePage(currentPage, paginationTotalRows || data.length);
       }
     }
   }
